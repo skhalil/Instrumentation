@@ -13,8 +13,9 @@ def name(input):
     return name
 
 def Z_in(Z0, S11_r, S11_i):
-    Z_in = Z0*( (1 - pow(S11_r,2) - pow(S11_i,2) )/( pow((1-S11_r),2) + pow(S11_i,2)) )
-    return Z_in
+    Z_in_R = Z0*( (1 - pow(S11_r,2) - pow(S11_i,2) )/( pow((1-S11_r),2) + pow(S11_i,2)) )
+    Z_in_I = Z0*( (2*S11_i)/(pow((1 - S11_r),2) +  pow(S11_i,2)) )
+    return Z_in_R, Z_in_I
 
 
 from optparse import OptionParser
@@ -38,6 +39,7 @@ date  = ''
 
 data_groups = []
 group_1 = [ ['index', 'freq', 'S11_Real', 'S11_Img', 'S12_Real', 'S12_Img', 'S13_Real', 'S13_Img', 'S14_Real', 'S14_Img']]
+group_2 = [ ['index', 'freq', 'S21_Real', 'S21_Img', 'S22_Real', 'S22_Img', 'S23_Real', 'S23_Img', 'S24_Real', 'S24_Img']]
 
 # split the file into data chunks corresponding to S parameter matrix by date
 # ---------------------------------------------------------------------------
@@ -78,37 +80,52 @@ with open(input) as f:
 
 # draw the plots:
 # ---------------
-freq, time, z_in_real=[],[],[]
+freq, z_in_real=[],[]
+freq, z_in_img =[],[]
 for i, c in enumerate(group_1):
-    if i==0: continue; # skip the title columns
+    if i==0: continue; # skip the title row
     freq.append(float(c[1]))
-    time.append(1./float(c[1]))    
+    #time.append(1./float(c[1]))    
     S11_r_in = float(c[2])
-    S11_i_in = float(c[3])    
-    Z_in_real = Z_in(50.0, S11_r_in, S11_i_in )    
+    S11_i_in = float(c[3])
+    S12_r_in = float(c[4])
+    S12_i_in = float(c[5])
+    #print('S12_r', S12_r_in)
+    Z_in_real, Z_in_img = Z_in(50.0, S11_r_in, S11_i_in )
+    #Z_in_real = Z_in(50.0, S11_r_in, S11_i_in )
     z_in_real.append(Z_in_real)
+    z_in_img.append(Z_in_img)
 
 
 #print ('freq: ', freq)
-#print ('Z: ', z_in_real)
-#print ('time: ', time) 
+#print ('Z_real: ', z_in_real)
+#print ('time: ', time)
 
-fig = plt.figure()
-ax = fig.add_subplot(1,1,1)
+fig = plt.figure(figsize=(8,5))
+ax0 = fig.add_subplot(1,2,1)
 major_ticks = np.arange(0, 6.5, 0.5)
 minor_ticks = np.arange(0, 6.5, 0.1)
-ax.set_xticks(major_ticks)
-ax.set_xticks(minor_ticks, minor=True)
-ax.grid(which='minor', alpha=0.2)
-ax.grid(which='major', alpha=0.5)
-ax.set_xlabel('Frequency (GHz)')
-ax.set_ylabel('Impdence (\u03A9)')
+ax0.set_xticks(major_ticks)
+ax0.set_xticks(minor_ticks, minor=True)
+ax0.grid(which='minor', alpha=0.2)
+ax0.grid(which='major', alpha=0.5)
+ax0.set_xlabel('Frequency (GHz)')
+ax0.set_ylabel('Z (Real) (\u03A9)')
 plt.plot(freq, z_in_real, 'r', linewidth=2.0, label=cable)
-ax.legend()
+ax0.legend()
 fig1 = plt.gcf()
+ax1 = fig.add_subplot(1,2,2)
+ax1.set_xticks(major_ticks)
+ax1.set_xticks(minor_ticks, minor=True)
+ax1.set_xlabel('Frequency (GHz)')
+ax1.set_ylabel('Z (Img) (\u03A9)')
+ax1.grid(which='minor', alpha=0.2)
+ax1.grid(which='major', alpha=0.5)
+plt.plot(freq, z_in_img, 'b', linewidth=2.0, label=cable)
 plt.show()
 plt.draw()
 fig1.savefig(dir_in+'/'+cable+'.png')
 pl.dump(fig1, open(dir_in+'/'+cable+'.pickle', 'wb'))
+
 
     
