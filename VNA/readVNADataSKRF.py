@@ -21,8 +21,21 @@ def name(input):
 
 from optparse import OptionParser
 parser = OptionParser()
+
+# (35: 17, 18, 19, 26, 27, 28, 29, 56, 57, 58) 'TP_35cm_XX_ChD1.vna
+# (35 redo: 56, 60) 
+# (1 : 20, 21, 23, 32, 33) TP_1m_XX_ChD1.vna # 20,21 went wrong
+# (1 redo: 53, 53_D0, 55)
+# (1p4: 35, 36, 37, 38, 39, 40) TP_1p4m_XX_ChD1.vna. #38, 40 went wrong
+# (1p4: 35, 36, 41, 42
+# (2 : 46, 47) TP_2m_47_ChD1
+# (2: 46)
+
+
+
+
 parser.add_option('--basename', metavar='T', type='string', action='store',
-                  default='TP_1m_33_ChD1.vna', #31, 15
+                  default='Redo_VNA/082620_TP_53_1m_ChD0_SK.vna', #31, 15, 33 #calibration_test.vna 
                   dest='basename',
                   help='input text file')
 
@@ -35,7 +48,9 @@ parser.add_option('--directory', metavar='T', type='string', action='store',
 # ==========end: options =============
 basename = options.basename
 dir_in= options.directory
-cable = name(basename)
+if '_\d+' in basename:
+    cable = name(basename)
+else: cable = basename    
 #date  = ''
 
 #basename = 'TP_1m_23_ChD1.vna' #TP_1m_33_ChD1.vna calibration_test
@@ -95,7 +110,7 @@ example = rf.Network(dir_in+'/'+basename+'_0.s2p', f_unit='ghz')
 # S13 : s[:,0,1]
 # S14 : s[:,1,1]
 
-
+#https://teledynelecroy.com/doc/an-introduction-to-sparameters
 with style.context('seaborn-ticks'):
     #Time domain reflectometry, measurement vs simulation
     fig0 = plt.figure(figsize=(8,4))
@@ -110,14 +125,14 @@ with style.context('seaborn-ticks'):
     plt.title('Frequency')
     example_dc.s11.plot_s_db(label='S11')
     example_dc.s21.plot_s_db(label='S12')
-    plt.ylim((-50.0, 50.0))
+    plt.ylim((-200.0, 100.0))
     plt.xlim((100000, 2500000000))
     ax1=plt.subplot(1,2,2)
     ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax1.grid(True, color='0.8', which='minor')
     ax1.grid(True, color='0.4', which='major')
-    plt.title('Time domain reflexion step response (DC extrapolation)') #The time_step component of the z-matrix vs frequency
+    plt.title('Time domain reflection step response (DC extrapolation)') #The time_step component of the z-matrix vs frequency
     example_dc.s11.plot_z_time_step(attribute='z_time_step', pad=2000, window='hamming', z0=50, label='TD11')
     example_dc.s21.plot_z_time_step(pad=2000, window='hamming', z0=50, label='TD12')
     plt.ylim((-500.0, 500.0))
