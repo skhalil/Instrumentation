@@ -38,13 +38,13 @@ def display_mean_impedance(ax, t1, t2, col):##https://www.tutorialfor.com/questi
 
     # create a table, and since the list X and Y should have size=1, place the first
     # element (array) in pandas table columns t and Z    
-    df = pd.DataFrame()    
+    df = pd.DataFrame()
     df['t'] = X[0]
     df['Z'] = Y[0]
 
     # get the mean value of Z for a given time difference
     Z_mean =  df.query('t >=@t1 & t<=@t2').agg({'Z': 'mean'})
-    print(Z_mean, 'ohms')
+    print('Mean impedance from ', t1, 'ns  and ', t2, 'ns =', Z_mean.values, 'for', lines[0])
 
     # plot the average line
     x_coor = [t1, t2]
@@ -63,11 +63,11 @@ def set_axes(ax, title, ymin, ymax, xmin, xmax, nolim):
     plt.tight_layout()
 
 #####################  
-cable_length = '20'
+cable_length = '100'
 
 subfile = '0'; comp=''; S_ij=''
 
-if   subfile == '0':    comp = '11'#12
+if   subfile == '0':    comp = '12'#12
 elif subfile == '1':    comp = '21'
     
 if comp == '11' and subfile == '0': S_ij = '11'
@@ -76,7 +76,7 @@ elif comp == '21' and subfile == '1': S_ij = '11'
 
 i = int(split(S_ij)[0])
 j = int(split(S_ij)[1])
-print('----->', i, j)
+#print('S_ij ----->', i, j)
 
 out_dir = 'Plots'
 sub_out_dir = 'Redo_VNA'
@@ -110,7 +110,7 @@ sub_out_dir = 'Redo_VNA'
 if cable_length == '20':
     net1 = rf.Network(out_dir+'/'+sub_out_dir+'/TP_20cm_12_ChD3_ChCMD.vna_'+subfile+'.s2p', f_unit='ghz')#33
     net2 = rf.Network('Plots/TP_20cm_31_ChD1.vna_'+subfile+'.s2p', f_unit='ghz') #23
-    #net3 = rf.network.Network('Plots/TP_20cm_49_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')
+    net3 = rf.Network('Plots/TP_20cm_49_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')
 elif cable_length == '35':
     net4 = rf.Network('Plots/Redo_VNA/TP_35cm_57_ChD0.vna_'+subfile+'.s2p', f_unit='ghz')
     net5 = rf.Network('Plots/Redo_VNA/TP_35cm_57_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')
@@ -120,9 +120,9 @@ elif cable_length == '35':
 elif cable_length == '100':
     #net1 = rf.Network('Plots/Redo_VNA/TP_1m_53_ChD0_rwy.vna_'+subfile+'.s2p', f_unit='ghz')
     net1 = rf.Network('Plots/Redo_VNA/TP_1m_13_ChD3_ChCMD.vna_'+subfile+'.s2p', f_unit='ghz')
-    #net2 = rf.Network('Plots/Redo_VNA/TP_1m_55_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')
+    net2 = rf.Network('Plots/Redo_VNA/TP_1m_55_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')    
     #net3 = rf.Network('Plots/Redo_VNA/TP_1m_55_ChCMD.vna_'+subfile+'.s2p', f_unit='ghz')
-    #net2 = rf.Network('Plots/Redo_VNA/082620_TP_53_1m_ChD0_SK.vna_'+subfile+'.s2p', f_unit='ghz') #55 34G_CHD1
+    net3 = rf.Network('Plots/Redo_VNA/082620_TP_53_1m_ChD0_SK.vna_'+subfile+'.s2p', f_unit='ghz') #55 34G_CHD1
     #net3 = rf.Network('Plots/TP_1m_32_ChD1.vna_'+subfile+'.s2p', f_unit='ghz')        
 elif cable_length == '140':    
     net1 = rf.network.Network('Plots/Redo_VNA/TP_1p4m_41_ChD0_redo_v2.vna_'+subfile+'.s2p', f_unit='ghz')
@@ -137,7 +137,7 @@ else:
     filename = out_dir+'/'+sub_out_dir+'/FPC_0p6m.vna_'+subfile+'.s2p'
     net1 = rf.network.Network(filename, f_unit='ghz')#straight_SMA.vna, FPC_0p6
 
-netref = rf.network.Network(out_dir+'/calibration_test.vna_'+subfile+'.s2p', f_unit='ghz')
+netref = rf.network.Network(out_dir+'/'+sub_out_dir+'/straight_SMA.vna_'+subfile+'.s2p', f_unit='ghz')
 
 
 with style.context('seaborn-ticks'):
@@ -156,29 +156,29 @@ with style.context('seaborn-ticks'):
         ## ---Frequency Domain Plots---:        
         net1_dc = net1[i,j].extrapolate_to_dc(kind='linear')
         net2_dc = net2[i,j].extrapolate_to_dc(kind='linear')
-        #net3_dc = net3[i,j].extrapolate_to_dc(kind='linear')
+        net3_dc = net3[i,j].extrapolate_to_dc(kind='linear')
         netref_dc = netref[i,j].extrapolate_to_dc(kind='linear')
         
         net1_dc.plot_s_db(label='S'+comp+', TP_20cm_12 (32)', ax=ax0, color='b')
         net2_dc.plot_s_db(label='S'+comp+', TP_20cm_31 (36)', ax=ax0, color='r')
-        #net3_dc.plot_s_db(label='S'+comp+', TP_20cm_49 (34)', ax=ax0, color='')
+        net3_dc.plot_s_db(label='S'+comp+', TP_20cm_49 (34)', ax=ax0, color='c')
         netref_dc.plot_s_db(label='S'+comp+', Calibration', ax=ax0, color='g')    
         set_axes(ax0, 'Frequency Domain', 100000, 6000000000, -50.0, 50.0, 1)
 
         ## ---Time Domain Plots---:       
         net1_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_20cm_12 (32)', ax=ax1, color='b')
-        display_mean_impedance(ax1, 1.0, 5.0, 'b')
+        display_mean_impedance(ax1, 1.0, 4.0, 'b')
         
         net2_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_20cm_31 (36)', ax=ax1, color='r')
-        display_mean_impedance(ax1, 3.0, 12.0, 'r')
+        display_mean_impedance(ax1, 1.0, 4.0, 'r')
 
-        #net3_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_20cm_49 (34)', ax=ax1, color='y')
-        #display_mean_impedance(ax1, 3.0, 12.0, 'y')
+        net3_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_20cm_49 (34)', ax=ax1, color='c')
+        display_mean_impedance(ax1, 1.0, 4.0, 'c')
         
         netref_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', Calibration', ax=ax1, color='g')
         display_mean_impedance(ax1, 0.0, 30.0, 'g')
         
-        set_axes(ax1, 'Time Domain', 0.0, 200.0, 0.0, 30.0, 0)
+        set_axes(ax1, 'Time Domain', 0.0, 400.0, 0.0, 30.0, 0)
          
         plt.show()
                       
@@ -206,47 +206,31 @@ with style.context('seaborn-ticks'):
         netref_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', Calibration', ax=ax1)
         set_axes(ax1, 'Time Domain', 0.0, 200.0, 0.0, 30.0, 0)
         
-    elif cable_length == '100':
-        net1_dc = net1[i,j].extrapolate_to_dc(kind='linear')
-        net2_dc = net2[i,j].extrapolate_to_dc(kind='linear')
-        net3_dc = net3[i,j].extrapolate_to_dc(kind='linear')
-        net4_dc = net4[i,j].extrapolate_to_dc(kind='linear')
-        net5_dc = net5[i,j].extrapolate_to_dc(kind='linear')
-        netref_dc = netref[i,j].extrapolate_to_dc(kind='linear')
-        
-        net1_dc.plot_s_db(label='S'+comp+', TP_1m_20 (36)', ax=ax0)
-        net2_dc.plot_s_db(label='S'+comp+', TP_1m_21 (36)', ax=ax0)
-        net3_dc.plot_s_db(label='S'+comp+', TP_1m_23 (36)', ax=ax0)
-        net4_dc.plot_s_db(label='S'+comp+', TP_1m_32 (34)', ax=ax0)
-        net5_dc.plot_s_db(label='S'+comp+', TP_1m_33 (34)', ax=ax0)
-        netref_dc.plot_s_db(label='S'+comp+', Calibration', ax=ax0)    
-        set_axes(ax0, 'Frequency Domain', 100000, 6000000000, -50.0, 50.0, 1)
 
-        net1_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_20 (36)', ax=ax1)
-        net2_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_21 (36)', ax=ax1)
-        net3_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_23 (36)', ax=ax1)
-        net4_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_32 (34)', ax=ax1)
-        net5_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_33 (34)', ax=ax1)
-        netref_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', Calibration', ax=ax1)
-        set_axes(ax1, 'Time Domain', 0.0, 200.0, 0.0, 30.0, 0)
-        
-        
+    
     elif cable_length == '100':
         net1_dc   = net1[i,j].extrapolate_to_dc(kind='linear')
-        #net2_dc   = net2[i,j].extrapolate_to_dc(kind='linear')
-        #net3_dc   = net3[i,j].extrapolate_to_dc(kind='linear')
-        #netref_dc = netref[i,j].extrapolate_to_dc(kind='linear')        
-        net1_dc.plot_s_db(label='S'+comp+', TP_1m_13_ (34)', ax=ax0)
-        #net2_dc.plot_s_db(label='S'+comp+', TP_1m_55_D1 (34)', ax=ax0)
-        #net3_dc.plot_s_db(label='S'+comp+', TP_1m_55_CMD (34)', ax=ax0)
-        #netref_dc.plot_s_db(label='S'+comp+', Calibration', ax=ax0)    
+        net2_dc   = net2[i,j].extrapolate_to_dc(kind='linear')
+        net3_dc   = net3[i,j].extrapolate_to_dc(kind='linear')
+        netref_dc = netref[i,j].extrapolate_to_dc(kind='linear')        
+        net1_dc.plot_s_db(label='S'+comp+', TP_1m_13 (32)', ax=ax0, color='b')
+        net2_dc.plot_s_db(label='S'+comp+', TP_1m_55_D1 (34)', ax=ax0, color='r')
+        net3_dc.plot_s_db(label='S'+comp+', TP_1m_53_D0 (36)', ax=ax0, color='k')       
+        netref_dc.plot_s_db(label='S'+comp+', Calibration', ax=ax0)    
         set_axes(ax0, 'Frequency Domain', 100000, 6000000000, -50.0, 50.0, 1)
+        
+        net1_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_13 (32)', ax=ax1, color='b')
+        display_mean_impedance(ax1, 4.0, 8.0, 'b')
 
-        net1_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_13 (32)', ax=ax1)
-        #net2_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_55_D1 (34)', ax=ax1)
-        #net3_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_55_CMD (34)', ax=ax1)
-        #net3_dc.s11.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_32 (34)')
-        #netref_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', Calibration', ax=ax1)
+        net2_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_55_D1 (34)', ax=ax1, color ='r')
+        display_mean_impedance(ax1, 4.0, 8.0, 'r')
+
+        net3_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', TP_1m_53_D0 (36)', ax=ax1, color='k')
+        display_mean_impedance(ax1, 4.0, 8.0, 'k')
+        
+        netref_dc.plot_z_time_step(pad=0, window='hamming', z0=50, label='TD'+comp+', Calibration', ax=ax1, color='g')
+        display_mean_impedance(ax1, 4.0, 8.0, 'g')
+        
         set_axes(ax1, 'Time Domain', 0.0, 200.0, 0.0, 30.0, 0)               
 
     elif cable_length == '140':
