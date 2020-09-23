@@ -35,7 +35,7 @@ parser = OptionParser()
 
 
 parser.add_option('--basename', metavar='T', type='string', action='store',
-                  default='Redo_VNA/082620_TP_53_1m_ChD0_SK.vna', #31, 15, 33 #calibration_test.vna 
+                  default='Redo_VNA/straight_SMA.vna', #31, 15, 33 #calibration_test.vna 
                   dest='basename',
                   help='input text file')
 
@@ -113,7 +113,7 @@ example = rf.Network(dir_in+'/'+basename+'_0.s2p', f_unit='ghz')
 #https://teledynelecroy.com/doc/an-introduction-to-sparameters
 with style.context('seaborn-ticks'):
     #Time domain reflectometry, measurement vs simulation
-    fig0 = plt.figure(figsize=(8,4))
+    fig0 = plt.figure(figsize=(10,4))
     ax0=plt.subplot(1,2,1)
     #major_ticks = np.arange(0, 6.5, 0.5)
     #minor_ticks = np.arange(0, 6.5, 0.1)
@@ -122,21 +122,21 @@ with style.context('seaborn-ticks'):
     ax0.grid(True, color='0.8', which='minor')
     ax0.grid(True, color='0.4', which='major')
     example_dc = example.extrapolate_to_dc(kind='linear')
-    plt.title('Frequency')
+    plt.title('Frequency Domain')
     example_dc.s11.plot_s_db(label='S11')
     example_dc.s21.plot_s_db(label='S12')
-    plt.ylim((-200.0, 100.0))
-    plt.xlim((100000, 2500000000))
+    plt.ylim((-50.0, 50.0))
+    plt.xlim((100000, 6000000000))
     ax1=plt.subplot(1,2,2)
     ax1.xaxis.set_minor_locator(AutoMinorLocator(2))
     ax1.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax1.grid(True, color='0.8', which='minor')
     ax1.grid(True, color='0.4', which='major')
-    plt.title('Time domain reflection step response (DC extrapolation)') #The time_step component of the z-matrix vs frequency
+    plt.title('Time domain') #The time_step component of the z-matrix vs frequency
     example_dc.s11.plot_z_time_step(attribute='z_time_step', pad=2000, window='hamming', z0=50, label='TD11')
     example_dc.s21.plot_z_time_step(pad=2000, window='hamming', z0=50, label='TD12')
-    plt.ylim((-500.0, 500.0))
-    plt.xlim((-5, 20))
+    plt.ylim((0.0, 200.0))
+    plt.xlim((0, 35))
     plt.tight_layout()
     fig0.savefig(dir_in+'/'+cable+'_freq_time_Z_rf.png')
     
@@ -153,6 +153,7 @@ with style.context('seaborn-ticks'):
     s11_gated.plot_s_db_time()
     plt.title('Time Domain')
     plt.xlim((-5, 5))
+    
     plt.tight_layout()
     #plt.show()
     fig1.savefig(dir_in+'/'+cable+'_fref_time_rf.png')
@@ -190,7 +191,7 @@ with style.context('seaborn-ticks'):
 #plt.figure(1)
 #pylab.title('S_{12}')
 #    example.plot_s_db(m=1, n=0)
-    pylab.show()
+    #pylab.show()
     #tight_layout()
     fig.savefig(dir_in+'/'+cable+'_rf.png')
     pl.dump(fig, open(dir_in+'/'+cable+'.pickle', 'wb'))
